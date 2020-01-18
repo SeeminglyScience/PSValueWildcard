@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET CoreCLR Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}",
+            "justMyCode": true,
+        },
+        {
+            "name": ".NET FullCLR Attach",
+            "type": "clr",
+            "request": "attach",
+            "processId": "${command:pickProcess}",
+            "justMyCode": true,
+        },
+    ],
+}
