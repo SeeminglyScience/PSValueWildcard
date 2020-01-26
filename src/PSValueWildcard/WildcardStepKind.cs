@@ -11,5 +11,7 @@ namespace PSValueWildcard
         AnyOne = 3,
 
         AnyOf = 4,
+
+        PartialAnyOf = 5,
     }
 }

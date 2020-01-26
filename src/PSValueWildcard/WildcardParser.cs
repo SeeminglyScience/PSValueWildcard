@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 
 namespace PSValueWildcard
 {
@@ -42,37 +43,7 @@ namespace PSValueWildcard
                     case '`': MaybeAddPendingExact(); ignoreNext = true; break;
                     case '*': MaybeAddPendingExact(); Steps.Add(WildcardInstruction.AnyAny); break;
                     case '?': MaybeAddPendingExact(); Steps.Add(WildcardInstruction.AnyOne); break;
-                    case '[':
-                    {
-                        MaybeAddPendingExact();
-                        int start = _index;
-                        int length = 0;
-                        bool found = false;
-                        while (MoveNext())
-                        {
-                            length++;
-                            if (*_chars != ']')
-                            {
-                                continue;
-                            }
-
-                            found = true;
-                            Steps.Add(
-                                WildcardInstruction.AnyOf(
-                                    _pattern.Slice(
-                                        start + 1,
-                                        length - 1)));
-
-                            break;
-                        }
-
-                        if (!found)
-                        {
-                            Steps.Add(WildcardInstruction.Exact(_pattern.Slice(start)));
-                        }
-
-                        break;
-                    }
+                    case '[': ProcessAnyOf(); break;
                     default: _exactStart ??= _index; break;
                 }
             }
@@ -84,6 +55,62 @@ namespace PSValueWildcard
 
             Steps.Add(WildcardInstruction.Exact(_pattern.Slice(_exactStart.Value)));
             _exactStart = null;
+        }
+
+        private void ProcessAnyOf()
+        {
+            MaybeAddPendingExact();
+            int start = _index;
+            int length = 0;
+            bool found = false;
+            bool isPartial = false;
+            while (MoveNext())
+            {
+                length++;
+                char current = *_chars;
+                if (current == '`')
+                {
+                    isPartial = true;
+                    if (length > 1)
+                    {
+                        Steps.Add(
+                            WildcardInstruction.PartialAnyOf(
+                                _pattern.Slice(
+                                    start + 1,
+                                    length - 1)));
+                    }
+
+                    // Skip trying to process the next character.
+                    start = _index;
+                    length = 1;
+                    MoveNext();
+                    continue;
+                }
+
+                if (current != ']')
+                {
+                    continue;
+                }
+
+                found = true;
+                Steps.Add(
+                    WildcardInstruction.AnyOf(
+                        _pattern.Slice(
+                            start + 1,
+                            length - 1),
+                        isPartial));
+
+                break;
+            }
+
+            if (!found)
+            {
+                throw new InvalidOperationException(
+                    string.Format(
+                        System.Globalization.CultureInfo.CurrentCulture,
+                        "The specified wildcard character pattern is not valid: {0}",
+                        _pattern.ToString()));
+            }
         }
 
         private void MaybeAddPendingExact()

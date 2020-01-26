@@ -30,9 +30,18 @@ namespace PSValueWildcard.Tests
         [Fact]
         public void SpecialCharactersCountAsLiterals()
         {
-            AssertMatch("tes*t", "tes[*[?]");
-            AssertMatch("tes[t", "tes[*[?]");
-            AssertMatch("tes[t", "tes[*[?]");
+            AssertMatch("tes*t", "tes[*[?]t");
+            AssertMatch("tes[t", "tes[*[?]t");
+            AssertMatch("tes?t", "tes[*[?]t");
+        }
+
+        [Fact]
+        public void CanEscapeCharacters()
+        {
+            AssertMatch("testt", "tes[`]t]t");
+            AssertMatch("tes]t", "tes[`]t]t");
+            AssertMatch("tes]t", "tes[`]`tfajsd`*qw]t");
+            AssertNotMatch("tes`t", "tes[`]t]t");
         }
     }
 }

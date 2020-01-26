@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;netstandard2.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>SeeminglyScience</Authors>
     <Copyright>(c) 2020 Patrick Meinecke</Copyright>
-    <PackageLicenseUrl>https://github.com/SeeminglyScience/PSValueWildcard/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/SeeminglyScience/PSValueWildcard</PackageProjectUrl>
     <Tags>Wildcard;PowerShell;Span</Tags>
     <RepositoryUrl>https://github.com/SeeminglyScience/PSValueWildcard</RepositoryUrl>
@@ -17,12 +17,20 @@
     <DefineConstants>NETSTANDARD20</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1'">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' OR '$(TargetFramework)' == 'netcoreapp2.1'">
     <DefineConstants>CORE</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
     <PackageReference Include="System.Memory" Version="4.5.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE." Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
 </Project>

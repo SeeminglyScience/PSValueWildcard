@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace PSValueWildcard
 {
@@ -55,7 +56,8 @@ namespace PSValueWildcard
         {
             return IsMatch(
                 new StringPart(input, inputLength),
-                new StringPart(pattern, patternLength));
+                new StringPart(pattern, patternLength),
+                options);
         }
 
         internal static unsafe bool IsMatch(
@@ -99,12 +101,7 @@ namespace PSValueWildcard
             }
         }
 
-        public bool IsMatch()
-        {
-            return Go();
-        }
-
-        public bool Go()
+        public unsafe bool IsMatch()
         {
             while (true)
             {
@@ -138,44 +135,98 @@ namespace PSValueWildcard
                     return false;
                 }
 
-                if (frame.PreceededByWildcard)
+                bool shouldBacktrack;
+                if (opcode.Kind == WildcardStepKind.PartialAnyOf)
                 {
-                    frame.CanBacktrackTo = true;
-                    Range range = FindNext(in opcode);
-                    if (range.IsInvalid)
+                    int stepLength = 0;
+                    int argumentLength = 0;
+                    for (int i = _index; i < _instructions.Length; i++)
                     {
-                        if (TryBacktrack())
+                        ref readonly var currentOpCode = ref _instructions[i];
+                        if (currentOpCode.Kind != WildcardStepKind.PartialAnyOf)
                         {
-                            continue;
+                            break;
                         }
 
-                        return false;
+                        stepLength++;
+                        argumentLength += currentOpCode.Args.Length;
                     }
 
-                    frame.Position = range;
-                    _textPosition = range.End;
-                    _index++;
-                    continue;
-                }
+                    const int StackAllocThreshold = 0x100;
+                    Span<char> combinedArgs = argumentLength < StackAllocThreshold
+                        ? stackalloc char[argumentLength]
+                        : new char[argumentLength];
 
-                if (IsAtMatch(in opcode))
+                    int currentPosition = 0;
+                    for (int i = 0; i < stepLength; i++)
+                    {
+                        var argSpan = _instructions[i + _index].Args.AsSpan();
+                        argSpan.CopyTo(combinedArgs.Slice(currentPosition));
+                        currentPosition += argSpan.Length;
+                    }
+
+                    var combinedOpCode = WildcardInstruction.AnyOf(
+                        new StringPart(
+                            (char*)Unsafe.AsPointer(ref MemoryMarshalPoly.GetReference(combinedArgs)),
+                            combinedArgs.Length));
+
+                    if (ProcessOpCode(ref frame, in combinedOpCode, out shouldBacktrack, stepLength))
+                    {
+                        continue;
+                    }
+                }
+                else if (ProcessOpCode(ref frame, in opcode, out shouldBacktrack))
                 {
-                    _index++;
-                    opcode.TryGetLength(out int length);
-                    frame.Position = new Range(
-                        _textPosition,
-                        _textPosition + length);
-                    _textPosition = frame.Position.End;
                     continue;
                 }
 
-                if (TryBacktrack())
+
+                if (shouldBacktrack && TryBacktrack())
                 {
                     continue;
                 }
 
                 return false;
             }
+        }
+
+        private bool ProcessOpCode(
+            ref Frame frame,
+            in WildcardInstruction opcode,
+            out bool shouldBacktrack,
+            int framesToJump = 1)
+        {
+            if (frame.PreceededByWildcard)
+            {
+                frame.CanBacktrackTo = true;
+                Range range = FindNext(in opcode);
+                if (range.IsInvalid)
+                {
+                    shouldBacktrack = true;
+                    return false;
+                }
+
+                frame.Position = range;
+                _textPosition = range.End;
+                _index += framesToJump;
+                shouldBacktrack = false;
+                return true;
+            }
+
+            if (IsAtMatch(in opcode))
+            {
+                _index += framesToJump;
+                opcode.TryGetLength(out int length);
+                frame.Position = new Range(
+                    _textPosition,
+                    _textPosition + length);
+                _textPosition = frame.Position.End;
+                shouldBacktrack = false;
+                return true;
+            }
+
+            shouldBacktrack = true;
+            return false;
         }
 
         private bool TryBacktrack()

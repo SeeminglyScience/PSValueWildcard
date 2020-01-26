@@ -20,8 +20,13 @@ namespace PSValueWildcard
 
         public readonly ReadOnlySpan<char> Arguments => Args.AsSpan();
 
-        internal static WildcardInstruction AnyOf(StringPart arguments)
-            => new WildcardInstruction(WildcardStepKind.AnyOf, arguments);
+        internal static WildcardInstruction AnyOf(StringPart arguments, bool isPartial = false)
+            => new WildcardInstruction(
+                isPartial ? WildcardStepKind.PartialAnyOf : WildcardStepKind.AnyOf,
+                arguments);
+
+        internal static WildcardInstruction PartialAnyOf(StringPart arguments)
+            => new WildcardInstruction(WildcardStepKind.PartialAnyOf, arguments);
 
         internal static WildcardInstruction Exact(StringPart arguments)
             => new WildcardInstruction(WildcardStepKind.Exact, arguments);
@@ -58,8 +63,9 @@ namespace PSValueWildcard
             {
                 WildcardStepKind.AnyAny => "*",
                 WildcardStepKind.AnyOne => "?",
-                WildcardStepKind.AnyOf => string.Format("[{0}]", Args.ToString()),
-                WildcardStepKind.Exact => Args.ToString(),
+                WildcardStepKind.AnyOf => string.Format("AO: {0}", Args.ToString()),
+                WildcardStepKind.PartialAnyOf => string.Format("PAO: {0}", Args.ToString()),
+                WildcardStepKind.Exact => string.Format("E: {0}", Args.ToString()),
                 _ => string.Empty,
             };
         }
