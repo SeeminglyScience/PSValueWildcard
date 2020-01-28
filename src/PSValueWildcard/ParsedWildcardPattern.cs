@@ -74,6 +74,33 @@ namespace PSValueWildcard
         /// <returns>
         /// <c>true</c> if the wildcard pattern finds a match; otherwise, <c>false</c>.
         /// </returns>
+        public unsafe bool IsMatch(string input)
+        {
+            return IsMatch(input.AsSpan(), options: default);
+        }
+
+        /// <summary>
+        /// Indicates whether the wildcard pattern specified in the creation of
+        /// this object finds a match in the input string.
+        /// </summary>
+        /// <param name="input">The string to search for a match.</param>
+        /// <param name="options">Options that alter the behavior of the matcher.</param>
+        /// <returns>
+        /// <c>true</c> if the wildcard pattern finds a match; otherwise, <c>false</c>.
+        /// </returns>
+        public unsafe bool IsMatch(string input, ValueWildcardOptions options)
+        {
+            return IsMatch(input.AsSpan(), options);
+        }
+
+        /// <summary>
+        /// Indicates whether the wildcard pattern specified in the creation of
+        /// this object finds a match in the input string.
+        /// </summary>
+        /// <param name="input">The string to search for a match.</param>
+        /// <returns>
+        /// <c>true</c> if the wildcard pattern finds a match; otherwise, <c>false</c>.
+        /// </returns>
         public unsafe bool IsMatch(ReadOnlySpan<char> input)
         {
             return IsMatch(input, options: default);
@@ -122,6 +149,16 @@ namespace PSValueWildcard
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Releases unmanaged resources and performs other cleanup operations before the
+        /// <see cref="ParsedWildcardPattern" /> is reclaimed by garbage collection.
+        /// </summary>
+        /// <remarks>
+        /// This method overrides <see cref="object.Finalize" />. Application code should not
+        /// call this method; an object's Finalize method is automatically invoked during
+        /// garbage collection, unless finalization by the garbage collector has been disabled
+        /// by a call to the <see cref="GC.SuppressFinalize(object)" /> method.
+        /// </remarks>
         ~ParsedWildcardPattern() => Dispose();
     }
 }

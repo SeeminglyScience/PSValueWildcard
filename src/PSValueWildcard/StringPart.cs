@@ -1,9 +1,11 @@
-using System.Drawing;
 using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+
 namespace PSValueWildcard
 {
     /// <summary>
-    /// Provides similar functionality as <see cref="Span" /> but can be stored on the heap
+    /// Provides similar functionality as <see cref="Span{T}" /> but can be stored on the heap
     /// at the cost of safety. The source string *must* be fixed in memory, by being
     /// a pinned variable on the stack, via <see cref="GCHandle" />, a stackalloc'd char array,
     /// etc. Because this API is not byref based, if the source is not fixed then the GC may
@@ -11,9 +13,27 @@ namespace PSValueWildcard
     /// </summary>
     internal readonly struct StringPart
     {
-        public readonly unsafe char* Pointer;
+        // Spans can't contain pointers or references in the netstandard version.
+#if !NETSTANDARD20
+        public readonly unsafe char* _pointer;
+#else
+        public readonly IntPtr _pointer;
+#endif
 
         public readonly int Length;
+
+        public unsafe char* Pointer
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get
+            {
+#if !NETSTANDARD20
+                return _pointer;
+#else
+                return (char*)_pointer.ToPointer();
+#endif
+            }
+        }
 
         /// <summary>
         /// Initializes an instance of the <see cref="StringPart" /> class.
@@ -31,8 +51,13 @@ namespace PSValueWildcard
         /// </remarks>
         public unsafe StringPart(char* pointer, int length)
         {
-            Pointer = pointer;
             Length = length;
+
+#if !NETSTANDARD20
+            _pointer = pointer;
+#else
+            _pointer = (IntPtr)pointer;
+#endif
         }
 
         /// <summary>

@@ -1,14 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="Version.props" />
+
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;netstandard2.0</TargetFrameworks>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Description>A span based PowerShell wildcard matcher.</Description>
     <Authors>SeeminglyScience</Authors>
     <Copyright>(c) 2020 Patrick Meinecke</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/SeeminglyScience/PSValueWildcard</PackageProjectUrl>
-    <Tags>Wildcard;PowerShell;Span</Tags>
+    <PackageTags>wildcard;powershell;span</PackageTags>
     <RepositoryUrl>https://github.com/SeeminglyScience/PSValueWildcard</RepositoryUrl>
+    <TargetFrameworks>netcoreapp3.1;netcoreapp2.1;netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
