@@ -1,4 +1,4 @@
-#requires -Module InvokeBuild -Version 6.2.3
+#requires -Module InvokeBuild -Version 5.1
 [CmdletBinding()]
 param(
     [Parameter()]
@@ -13,7 +13,7 @@ param(
     [switch] $Force
 )
 
-$ModuleName     = 'PSValueWildcard'
+$ModuleName       = 'PSValueWildcard'
 $TargetSdkVersion = '3.1.100'
 $ToolsPath        = "$PSScriptRoot/tools"
 $IsUnix           = $PSEdition -eq 'Core' -and -not $IsWindows
@@ -54,15 +54,30 @@ task Pack {
     exec { & $dotnet pack --configuration Release --verbosity minimal --nologo }
 }
 
-task Test {
+task TestImpl {
+    $resultsPath = Join-Path $PSScriptRoot\tests\$ModuleName.Tests\TestResults\ -ChildPath *
+    if (Test-Path $resultsPath) {
+        Remove-Item $resultsPath -Recurse -Force @FailOnError
+    }
+
     Push-Location "$PSScriptRoot\tests\$ModuleName.Tests" @FailOnError
     try {
-        exec { & $dotnet test --verbosity minimal --nologo --configuration $Configuration --framework $Framework }
+        exec {
+            & $dotnet test `
+                --verbosity minimal `
+                --nologo `
+                --configuration $Configuration `
+                --framework $Framework `
+                --collect "XPlat Code Coverage" `
+                --settings "$PWD\coverlet.runsettings"
+        }
     } finally {
         Pop-Location @Silent
     }
 }
 
+task Test { $script:Framework = 'netcoreapp3.1' }, Build, TestImpl
+
 task . Build
 
-task Release { $script:Configuration = 'Release'; $script:Framework = 'netcoreapp3.1' }, Clean, Test, Pack
+task Release { $script:Configuration = 'Release'; $script:Framework = 'netcoreapp3.1' }, Clean, TestImpl, Pack

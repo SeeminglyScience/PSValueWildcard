@@ -1,0 +1,87 @@
+// Available variables which can be used inside of strings.
+// ${workspaceRoot}: the root folder of the team
+// ${file}: the current opened file
+// ${relativeFile}: the current opened file relative to workspaceRoot
+// ${fileBasename}: the current opened file's basename
+// ${fileDirname}: the current opened file's dirname
+// ${fileExtname}: the current opened file's extension
+// ${cwd}: the current working directory of the spawned process
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "windows": {
+        "options": {
+            "shell": {
+                "executable": "powershell.exe",
+                "args": [ "-ExecutionPolicy Bypass", "-NoProfile", "-File" ],
+            },
+        },
+    },
+    "linux": {
+        "options": {
+            "shell": {
+                "executable": "/usr/bin/pwsh",
+                "args": [ "-NoProfile", "-File" ],
+            },
+        },
+    },
+    "osx": {
+        "options": {
+            "shell": {
+                "executable": "/usr/local/bin/pwsh",
+                "args": [ "-NoProfile", "-File" ],
+            },
+        },
+    },
+    "type": "shell",
+    "tasks": [
+        {
+            "label": "Clean",
+            "command": "build.ps1",
+            "args": [ "-Task", "Clean", "-Force" ],
+            "problemMatcher": "$msCompile",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": false,
+                "clear": false
+            },
+        },
+        {
+            "label": "Build",
+            "command": "build.ps1",
+            "args": [ "-Task", "Build", "-Force", "-Configuration", "Debug" ],
+            "group": {
+                "kind": "build",
+                "isDefault": true,
+            },
+            "problemMatcher": {
+                "base": "$msCompile",
+                "fileLocation": "absolute",
+            },
+        },
+        {
+            "label": "Build (no automatic bootstrap)",
+            "command": "build.ps1",
+            "args": [ "-Task", "Build", "-Configuration", "Debug", "-Framework", "netcoreapp3.1" ],
+            "group": "build",
+            "problemMatcher": {
+                "base": "$msCompile",
+                "fileLocation": "absolute"
+            },
+            "runOptions": { "runOn": "folderOpen" },
+        },
+        {
+            "label": "Test",
+            "command": "build.ps1",
+            "args": [ "-Task", "Test", "-Force" ],
+            "group": {
+                "kind": "test",
+                "isDefault": true,
+            },
+        },
+    ],
+}

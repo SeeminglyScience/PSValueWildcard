@@ -5,5 +5,7 @@
         "ms-vscode.csharp",
         "ms-vscode.powershell",
         "DavidAnson.vscode-markdownlint",
+        "formulahendry.dotnet-test-explorer",
+        "ryanluker.vscode-coverage-gutters",
     ],
 }

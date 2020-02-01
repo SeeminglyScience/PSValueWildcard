@@ -1,9 +1,19 @@
 {
-    //-------- Files configuration --------
-
     // When enabled, will trim trailing whitespace when you save a file.
     "files.trimTrailingWhitespace": true,
 
     // When enabled, insert a final new line at the end of the file when saving it.
     "files.insertFinalNewline": true,
+
+    // Glob pattern that points to path of .NET Core test project(s).
+    "dotnet-test-explorer.testProjectPath": "tests/PSValueWildcard.Tests/PSValueWildcard.Tests.csproj",
+
+    // coverage file names for the extension to automatically look for
+    "coverage-gutters.coverageFileNames": [ "coverage.info", ],
+
+    // name of your lcov file
+    "coverage-gutters.lcovname": "coverage.info",
+
+    // name of your xml file
+    "coverage-gutters.xmlname": "coverage.cobertura.xml",
 }
