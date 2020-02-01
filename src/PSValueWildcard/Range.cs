@@ -1,8 +1,10 @@
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace PSValueWildcard
 {
+    [DebuggerDisplay("{{ {Start}, {End} }}")]
     internal readonly struct Range : IEquatable<Range>
     {
         private static readonly Range s_notFound = new Range(-1, 0);
@@ -45,15 +47,6 @@ namespace PSValueWildcard
         public readonly override bool Equals(object? obj) => obj is Range other && Equals(other);
 
         public readonly override int GetHashCode() => HashCodes.Combine(Start, End);
-
-        public readonly override string ToString()
-        {
-            return string.Format(
-                System.Globalization.CultureInfo.InvariantCulture,
-                "{{ {0}, {1} }}",
-                Start,
-                End);
-        }
 
         public readonly bool Equals(Range other)
         {

@@ -1,7 +1,10 @@
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace PSValueWildcard
 {
+    [DebuggerDisplay("{GetDebuggerDisplayString()}")]
     internal readonly struct WildcardInstruction : IEquatable<WildcardInstruction>
     {
         public static readonly WildcardInstruction AnyAny = new WildcardInstruction(WildcardStepKind.AnyAny, default);
@@ -57,7 +60,9 @@ namespace PSValueWildcard
 
         public override int GetHashCode() => HashCodes.Combine(Kind, Args);
 
-        public override string ToString()
+#if DEBUG
+        [ExcludeFromCodeCoverage]
+        private string GetDebuggerDisplayString()
         {
             return Kind switch
             {
@@ -69,5 +74,6 @@ namespace PSValueWildcard
                 _ => string.Empty,
             };
         }
+#endif
     }
 }
