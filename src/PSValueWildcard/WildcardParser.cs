@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 
 namespace PSValueWildcard
 {
@@ -105,11 +104,7 @@ namespace PSValueWildcard
 
             if (!found)
             {
-                throw new InvalidOperationException(
-                    string.Format(
-                        System.Globalization.CultureInfo.CurrentCulture,
-                        "The specified wildcard character pattern is not valid: {0}",
-                        _pattern.ToString()));
+                throw Error.InvalidWildcardPattern(_pattern.ToString());
             }
         }
 

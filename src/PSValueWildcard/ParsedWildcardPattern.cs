@@ -27,7 +27,7 @@ namespace PSValueWildcard
         {
             if (pattern == null)
             {
-                throw new ArgumentNullException(nameof(pattern));
+                throw Error.ArgumentNull(nameof(pattern));
             }
 
             if (pattern.Length == 0)
@@ -119,10 +119,10 @@ namespace PSValueWildcard
         {
             if (_isDisposed)
             {
-                throw new ObjectDisposedException(GetType().Name);
+                throw Error.ObjectDisposed(nameof(ParsedWildcardPattern));
             }
 
-            char* pInput = (char*)Unsafe.AsPointer(ref Unsafe.AsRef(in input[0]));
+            char* pInput = (char*)Unsafe.AsPointer(ref Unsafe.AsRef(MemoryMarshalPoly.GetReference(input)));
             return WildcardInterpreter.IsMatch(
                 new StringPart(pInput, input.Length),
                 _instructions.Span,
