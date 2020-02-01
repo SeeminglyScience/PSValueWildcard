@@ -5,9 +5,9 @@ namespace PSValueWildcard
     internal ref struct StackLoadedValueList<T>
         where T : unmanaged
     {
-        private ValueList<T> _list;
+        private readonly Span<T> _buffer;
 
-        private Span<T> _buffer;
+        private ValueList<T> _list;
 
         private int _length;
 

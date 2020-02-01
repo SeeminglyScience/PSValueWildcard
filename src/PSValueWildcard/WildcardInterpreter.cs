@@ -6,6 +6,8 @@ namespace PSValueWildcard
 {
     internal ref partial struct WildcardInterpreter
     {
+        private const int IndexNotFound = -1;
+
         private const int FrameStackAllocThreshold = 0x200;
 
         // Estimated characters per instruction, e.g. "*test*" would be 6 characters and
@@ -21,10 +23,7 @@ namespace PSValueWildcard
 
         private readonly ReadOnlySpan<WildcardInstruction> _instructions;
 
-        // Do not make this field readonly.
-#pragma warning disable IDE0044
-        private Span<Frame> _frames;
-#pragma warning restore IDE0044
+        private readonly Span<Frame> _frames;
 
         private int _index;
 
@@ -88,7 +87,7 @@ namespace PSValueWildcard
             {
                 parser.Parse();
                 int stepCount = parser.Steps.Length;
-                if (stepCount <= estimatedStackSize)
+                if (stepCount <= estimatedStackSize && !buffer.IsEmpty)
                 {
                     return IsMatch(input, buffer.Slice(0, stepCount), options);
                 }
@@ -125,14 +124,25 @@ namespace PSValueWildcard
 
                 if (opcode.Kind == WildcardStepKind.AnyOne)
                 {
-                    if (_source.Length - _textPosition - 1 > 0)
+                    int remaining = _source.Length - _textPosition;
+                    if (remaining == 1 && _index == _frames.Length - 1)
                     {
-                        _textPosition++;
-                        _index++;
-                        continue;
+                        return true;
                     }
 
-                    return false;
+                    if (remaining <= 0)
+                    {
+                        return false;
+                    }
+
+                    _textPosition++;
+                    _index++;
+                    if (frame.PreceededByWildcard)
+                    {
+                        _frames[_index].PreceededByWildcard = true;
+                    }
+
+                    continue;
                 }
 
                 bool shouldBacktrack;
@@ -179,7 +189,6 @@ namespace PSValueWildcard
                 {
                     continue;
                 }
-
 
                 if (shouldBacktrack && TryBacktrack())
                 {
@@ -251,7 +260,7 @@ namespace PSValueWildcard
             {
                 WildcardStepKind.AnyOf => FindNextAnyOf(opcode.Args),
                 WildcardStepKind.Exact => FindNextExplicit(opcode.Args),
-                _ => throw new ArgumentOutOfRangeException(nameof(opcode.Kind)),
+                _ => throw Error.ArgumentOutOfRange(nameof(opcode.Kind)),
             };
         }
 
@@ -261,7 +270,7 @@ namespace PSValueWildcard
             {
                 WildcardStepKind.AnyOf => IsAtMatchAnyOf(opcode.Args),
                 WildcardStepKind.Exact => IsAtMatchExplicit(opcode.Args),
-                _ => throw new ArgumentOutOfRangeException(nameof(opcode.Kind)),
+                _ => throw Error.ArgumentOutOfRange(nameof(opcode.Kind)),
             };
         }
 
@@ -307,20 +316,20 @@ namespace PSValueWildcard
         private (int index, int length) FindNextAnyOf(StringPart arguments)
         {
             var index = IndexOfAny(GetRemaining(), arguments);
-            if (index == -1)
+            if (index == IndexNotFound)
             {
-                return (-1, 0);
+                return Range.NotFound;
             }
 
-            return (index, 1);
+            return (index + _textPosition, index + _textPosition + 1);
         }
 
         private (int index, int length) FindNextExplicit(StringPart arguments)
         {
             var index = IndexOf(GetRemaining(), arguments);
-            if (index == -1)
+            if (index == IndexNotFound)
             {
-                return (-1, 0);
+                return Range.NotFound;
             }
 
             return (index + _textPosition, index + _textPosition + arguments.Length);
@@ -338,7 +347,7 @@ namespace PSValueWildcard
                 }
             }
 
-            return -1;
+            return IndexNotFound;
         }
 
         private char Normalize(char value)
@@ -350,12 +359,12 @@ namespace PSValueWildcard
         {
             if (value.IsEmpty)
             {
-                return -1;
+                return IndexNotFound;
             }
 
             if (source.Length < value.Length)
             {
-                return -1;
+                return IndexNotFound;
             }
 
             char firstChar = value[0];
@@ -367,9 +376,9 @@ namespace PSValueWildcard
             {
                 FindFirstCharLoop:
                 firstCharIndex = IndexOf(remainingSource, firstChar);
-                if (firstCharIndex == -1)
+                if (firstCharIndex == IndexNotFound)
                 {
-                    return -1;
+                    return IndexNotFound;
                 }
 
                 remainingSource = remainingSource.Slice(firstCharIndex + 1);
@@ -377,7 +386,7 @@ namespace PSValueWildcard
 
                 if (remainingSource.Length < remainingChars.Length)
                 {
-                    return -1;
+                    return IndexNotFound;
                 }
 
                 for (int i = 0; i < remainingChars.Length; i++)
@@ -408,7 +417,7 @@ namespace PSValueWildcard
                 }
             }
 
-            return -1;
+            return IndexNotFound;
         }
 
         private StringPart GetRemaining()
