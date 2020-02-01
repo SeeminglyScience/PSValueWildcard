@@ -3,7 +3,7 @@
   <Import Project="Version.props" />
 
   <PropertyGroup>
-    <Description>A span based PowerShell wildcard matcher.</Description>
+    <Description>A span based wildcard pattern evaluator compatible with PowerShell's WildcardPattern implementation.</Description>
     <Authors>SeeminglyScience</Authors>
     <Copyright>(c) 2020 Patrick Meinecke</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
@@ -45,7 +45,7 @@
 
   <ItemGroup>
     <!-- See: https://github.com/NuGet/Home/issues/7601 -->
-    <None Include="..\..\LICENSE." Pack="true" Visible="false" PackagePath="" />
+    <None Include="..\..\LICENSE" Pack="true" Visible="false" PackagePath="" />
   </ItemGroup>
 
 </Project>
