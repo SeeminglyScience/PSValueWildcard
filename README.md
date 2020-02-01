@@ -1,22 +1,27 @@
 # PSValueWildcard
 
-A span based PowerShell wildcard matcher.
+A span based wildcard pattern evaluator compatible with PowerShell's [WildcardPattern] implementation.
+
+- **Testers needed**: Ideally this project will be as reliable as PowerShell's implementation, but a
+  whole lot of testing is needed before this project could be considered production ready. If this project
+  interests you, try to break it! Especially folks who use culture settings other than `en-US`!
 
 ## Features
 
-- Accepts `ReadOnlySpan<char>` for both input and pattern
+- Accepts [ReadOnlySpan&lt;char&gt;] for both input and pattern
 - Often heap allocation free (see [About heap allocations](#about-heap-allocations))
 - Focus on performance
+- Completely standalone, PowerShell is not required
 
 ## Installation
 
 ```powershell
-dotnet add package PSValueWildcard
+dotnet add package PSValueWildcard --version 1.0.0-alpha1
 ```
 
 ## Usage
 
-### Ad-hoc
+### On demand
 
 ```csharp
 using PSValueWildcard;
@@ -31,8 +36,8 @@ public void Match()
 }
 ```
 
-**NOTE**: Because `ValueWildcardPattern` is not regex based, the parsed result will not be cached.
-For the majority of pattern lengths and complexities it should still be performant.
+**NOTE**: Unlike the regex based [WildcardPattern], the parsed result will not be cached when utilizing
+`ValueWildcardPattern`. For the majority of pattern lengths and complexities it should still be performant.
 
 ### Heap cached
 
@@ -54,7 +59,7 @@ public void Match(string pattern)
 }
 ```
 
-### Cmdlet example
+### Cmdlet example (requires PowerShell)
 
 ```csharp
 using System.Management.Automation;
@@ -86,6 +91,20 @@ public sealed class TestPatternCommand : PSCmdlet, IDisposable
 }
 ```
 
+## Why
+
+I made this because I really like using the [Span&lt;T&gt;] API these days. If I'm making something, then
+it's often for PowerShell.  And if it's for PowerShell, I often want to support wildcard matching. In
+order to do that, I end up allocating *a whole bunch* of strings that I wouldn't have to otherwise
+just trying to find an item.
+
+That's why I built it, but here's a few scenarios where you might consider this library:
+
+1. You're already using [Span&lt;T&gt;]
+2. You're building an application where you want to support PowerShell style wildcard patterns,
+   but do not want to reference all of [System.Management.Automation]
+3. You feel that [WildcardPattern] is too slow or allocates too much
+
 ## About heap allocations
 
 This library attempts to achieve zero heap allocations, however there are a few circumstances
@@ -101,4 +120,10 @@ where they may be required. These circumstances include (but may not be limited 
   on the stack, a heap allocation will be made
 
 - When saving the parsed pattern as a `ParsedWildcardPattern`, the entire object is allocated
-  to the heap along with a `GCHandle` for the pinned string
+  to the heap along with a [GCHandle] for the pinned string
+
+[Span&lt;T&gt;]: https://docs.microsoft.com/en-us/dotnet/api/system.span-1
+[ReadOnlySpan&lt;char&gt;]:https://docs.microsoft.com/en-us/dotnet/api/system.readonlyspan-1
+[WildcardPattern]: https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.wildcardpattern
+[System.Management.Automation]: https://www.nuget.org/packages/System.Management.Automation
+[GCHandle]: https://docs.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.gchandle
