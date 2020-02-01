@@ -3,7 +3,7 @@
     <Major>1</Major>
     <Minor>0</Minor>
     <Patch>0</Patch>
-    <PreReleaseTag>preview</PreReleaseTag>
+    <PreReleaseTag>alpha</PreReleaseTag>
     <PreReleaseIteration>1</PreReleaseIteration>
     <Version>$(Major).$(Minor).$(Patch).0</Version>
     <PackageVersionSuffix Condition=" '$(PreReleaseTag)' != '' ">-$(PreReleaseTag)$(PreReleaseIteration)</PackageVersionSuffix>
