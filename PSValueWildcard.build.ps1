@@ -71,6 +71,20 @@ task TestImpl {
                 --collect "XPlat Code Coverage" `
                 --settings "$PWD\coverlet.runsettings"
         }
+
+        $artifacts = Join-Path $PSScriptRoot -ChildPath artifacts
+        if (Test-Path $artifacts) {
+            Remove-Item $artifacts\* -Force @Silent
+        } else {
+            New-Item $artifacts -ItemType Directory | Out-Null
+        }
+
+        $packagePath = Join-Path $PSScriptRoot -ChildPath src/$ModuleName/bin/Release/$ModuleName.*.nupkg
+        $package = Get-ChildItem $packagePath @FailOnError |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+        Copy-Item $package.FullName -Destination $artifacts @FailOnError
     } finally {
         Pop-Location @Silent
     }

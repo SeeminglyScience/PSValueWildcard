@@ -19,6 +19,14 @@ namespace PSValueWildcard.Tests
         }
 
         [Fact]
+        public void MiddleWildcard()
+        {
+            AssertMatch("test there are some things after", "test*after");
+            AssertNotMatch("test there are some things after", "test*incorrect");
+            AssertNotMatch("test there are some things after", "test*[x]");
+        }
+
+        [Fact]
         public void CanBeZeroCharacters()
         {
             AssertMatch("test", "test*");

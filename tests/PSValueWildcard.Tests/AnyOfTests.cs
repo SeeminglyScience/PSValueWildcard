@@ -43,5 +43,17 @@ namespace PSValueWildcard.Tests
             AssertMatch("tes]t", "tes[`]`tfajsd`*qw]t");
             AssertNotMatch("tes`t", "tes[`]t]t");
         }
+
+        [Fact]
+        public void FailsOnAnyOfWithNoRemaining()
+        {
+            AssertNotMatch("test", "test[abcd]");
+        }
+
+        [Fact]
+        public void FindNextAnyOf()
+        {
+            AssertMatch("testing something for fun", "testing*[afe]un");
+        }
     }
 }
