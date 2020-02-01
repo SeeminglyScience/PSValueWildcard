@@ -1,3 +1,5 @@
+// Idea from:
+// https://www.meziantou.net/how-to-use-nullable-reference-types-in-dotnet-standard-2-0-and-dotnet-.htm
 #if NETSTANDARD20
 
 namespace System.Diagnostics.CodeAnalysis
