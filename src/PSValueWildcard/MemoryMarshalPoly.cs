@@ -21,5 +21,22 @@ namespace PSValueWildcard
             return ref span[0];
 #endif
         }
+
+        public static ref T GetReference<T>(ReadOnlySpan<T> span)
+        {
+#if CORE
+            return ref MemoryMarshal.GetReference(span);
+#else
+            if (span.IsEmpty)
+            {
+                unsafe
+                {
+                    return ref System.Runtime.CompilerServices.Unsafe.AsRef<T>(null);
+                }
+            }
+
+            return ref System.Runtime.CompilerServices.Unsafe.AsRef(in span[0]);
+#endif
+        }
     }
 }
